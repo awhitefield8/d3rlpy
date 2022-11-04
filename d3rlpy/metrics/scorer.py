@@ -172,6 +172,8 @@ def discounted_sum_of_advantage_scorer(
     return float(np.mean(total_sums))
 
 
+
+
 def average_value_estimation_scorer(
     algo: AlgoProtocol, episodes: List[Episode]
 ) -> float:
@@ -450,8 +452,11 @@ def evaluate_on_environment(
             stacked_observation = StackedObservation(
                 observation_shape, algo.n_frames
             )
+        
 
+        
         episode_rewards = []
+        step_rewards = []
         for _ in range(n_trials):
             observation = env.reset()
             episode_reward = 0.0
@@ -460,7 +465,9 @@ def evaluate_on_environment(
             if is_image:
                 stacked_observation.clear()
                 stacked_observation.append(observation)
-
+            
+            
+            counter = 0
             while True:
                 # take action
                 if np.random.random() < epsilon:
@@ -472,7 +479,10 @@ def evaluate_on_environment(
                         action = algo.predict([observation])[0]
 
                 observation, reward, done, _ = env.step(action)
-                episode_reward += reward
+                episode_reward += reward*(algo.gamma**counter)
+
+                if counter == 0:
+                    step_rewards.append(algo.predict_value([observation], [action]))
 
                 if is_image:
                     stacked_observation.append(observation)
@@ -482,8 +492,10 @@ def evaluate_on_environment(
 
                 if done:
                     break
+                counter += 1
+
             episode_rewards.append(episode_reward)
-        return float(np.mean(episode_rewards))
+        return float(np.mean(episode_rewards)),float(np.mean(step_rewards))
 
     return scorer
 
