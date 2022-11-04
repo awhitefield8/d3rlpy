@@ -496,7 +496,7 @@ def evaluate_on_environment(
 
             episode_rewards.append(episode_reward)
         return float(np.mean(episode_rewards)),float(np.mean(step_rewards))
-
+    
     return scorer
 
 
